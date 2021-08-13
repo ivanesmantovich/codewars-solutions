@@ -1,46 +1,53 @@
-// Write a function called sumIntervals/sum_intervals() that accepts an array of intervals, and returns the sum of all the interval lengths. Overlapping intervals should only be counted once.
-// Intervals
-
-// Intervals are represented by a pair of integers in the form of an array. The first value of the interval will always be less than the second value. Interval example: [1, 5] is an interval from 1 to 5. The length of this interval is 4.
-
-// The sum of the lengths of these intervals is 7. Since [1, 4] and [3, 5] overlap, we can treat the interval as [1, 5], which has a length of 4.
-
-// Брать интервал оригинального массива и сравнивать с массивом интервалов где этот интервал вырезан
-
 function sumIntervals(intervals) {
-	let usedNumbers = [];
-	for (let interval of intervals) {
-        console.log('interval', interval);
-		for (let number of interval) {
-			if (!usedNumbers.includes(number)) usedNumbers.push(number);
+	const deepCopy = (arr) => {
+		let copy = [];
+		arr.forEach((elem) => {
+			if (Array.isArray(elem)) {
+				copy.push(deepCopy(elem));
+			} else {
+				copy.push(elem);
+			}
+		});
+		return copy;
+	};
+
+	let filteredIntervals = [];
+
+	filteredIntervals = intervals.sort(function (a, b) {
+		return a[0] - b[0];
+	});
+
+	function connectOfTheIntersect(arrayToConnect) {
+		let beforeTheConnect = JSON.stringify(arrayToConnect);
+
+		for (let i = 0; i < arrayToConnect.length - 1; i += 1) {
+			if (
+				arrayToConnect[i][1] >= arrayToConnect[i + 1][0] &&
+				arrayToConnect[i][1] <= arrayToConnect[i + 1][1]
+			) {
+				// Текущий интервал пересекается со следующим интервалом
+				arrayToConnect[i] = [arrayToConnect[i][0], arrayToConnect[i + 1][1]];
+				arrayToConnect.splice(i + 1, 1);
+			} else if (
+				// Текущий интервал должен поглотить следующий (пример: step [ [ 1, 20 ], [ 16, 19 ] ])
+				arrayToConnect[i][1] > arrayToConnect[i + 1][0] &&
+				arrayToConnect[i][1] > arrayToConnect[i + 1][1]
+			) {
+				arrayToConnect[i] = [arrayToConnect[i][0], arrayToConnect[i][1]];
+				arrayToConnect.splice(i + 1, 1);
+			}
 		}
+
+		let afterTheConnect = JSON.stringify(arrayToConnect);
+
+		if (beforeTheConnect == afterTheConnect) {
+			filteredIntervals = arrayToConnect;
+		} else connectOfTheIntersect(arrayToConnect);
 	}
+
+	connectOfTheIntersect(filteredIntervals);
+
+	let result = 0;
+	for (let interval of filteredIntervals) result += interval[1] - interval[0];
+	return result;
 }
-
-sumIntervals([
-	[1, 2], // 1
-	[6, 10], // 7,8,9
-	[11, 15], // 12,13,14
-]); // => 9
-
-sumIntervals([
-	[1, 4],
-	[7, 10],
-	[3, 5],
-]); // => 7
-
-sumIntervals([
-	[1, 5], // -
-	[10, 20], // 19
-	[1, 6], // -
-	[16, 19],  
-	[5, 11], // 10
-]); // => 19
-
-
-
-// let testArray = [];
-// testArray.push([1,3]);
-// console.log(testArray);
-// if (JSON.stringify(testArray).includes(JSON.stringify([1,3]))) console.log('includes');
-// else console.log('not')
