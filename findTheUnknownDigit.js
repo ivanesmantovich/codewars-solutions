@@ -21,7 +21,26 @@ function solveExpression(exp) {
 	// const singleQMAfterNum = /(\d)(\?)(\B|\b|$)/g;
 	const singleQMAfterNum = /(\d)(\?)(\B|\b|$)/g;
 	const multipleQM = /\?/g;
+	let usedNums = [];
 	let changedExpression;
+
+	// let setUsedNums = new Set([...exp.matchAll(/\d{1}/g)]);
+	// for (let set of setUsedNums) {
+	//     if (usedNums.includes(set[0]) == false) usedNums.push(set[0]);
+	// }
+
+	for (let character of exp) {
+		for (let i = 1; i < 10; i += 1) {
+			if (character == i) usedNums.push(Number(character));
+		}
+	}
+
+	console.log(usedNums);
+	let numsToUse = [];
+	for (let i = 1; i < 10; i += 1) {
+		if (usedNums.includes(i) == false) numsToUse.push(i);
+	}
+	console.log('numsToUse', numsToUse);
 
 	// changedExpression = exp.replace(singleQM, '$10$3');
 	// changedExpression = changedExpression.replace(/=/g, '==');
@@ -48,17 +67,42 @@ function solveExpression(exp) {
 	// }
 	// if (eval(changedExpression) == true) return 0;
 
-	function tryZero() {
+	function tryZeroFirst() {
 		changedExpression = exp.replace(singleQMAfterNum, '$10$3');
 		changedExpression = changedExpression.replace(/=/g, '==');
 		console.log(changedExpression);
+		try {
+			eval(changedExpression);
+		} catch (error) {
+			console.log(error);
+			return;
+		}
+		if (eval(changedExpression) == true) return 0;
+	}
+
+	function tryZeroSecond() {
+		changedExpression = exp.replace(multipleQM, '0');
+		changedExpression = changedExpression.replace(/=/g, '==');
+		console.log(changedExpression);
+		try {
+			eval(changedExpression);
+		} catch (error) {
+			console.log(error);
+			return;
+		}
 		if (eval(changedExpression) == true) return 0;
 	}
 
 	function tryNums() {
-		for (let digit = 1; digit < 10; digit += 1) {
+		for (let digit of numsToUse) {
 			changedExpression = exp.replace(multipleQM, digit);
 			changedExpression = changedExpression.replace(/=/g, '==');
+			try {
+				eval(changedExpression);
+			} catch (error) {
+				console.log(error);
+				return -1;
+			}
 			if (eval(changedExpression) == true) {
 				console.log(changedExpression);
 				return digit;
@@ -74,9 +118,23 @@ function solveExpression(exp) {
 	// 	}
 	// }
 
-	if (tryZero() == undefined) {
-		return tryNums();
-	} else return tryZero();
+	// if (tryZeroFirst() == undefined && tryZeroSecond() == undefined && tryNums() == undefined) return -1;
+
+	// if (tryZeroFirst() == undefined && tryZeroSecond() == undefined) {
+	// 	return tryNums();
+	// } else return tryZero();
+
+	// if (tryZeroFirst() == undefined) {
+
+	// }
+
+	function tryFunctions(funcs) {
+		for (let func of funcs) {
+			if (func() != undefined) return func();
+		}
+	}
+
+	return tryFunctions([tryZeroFirst, tryZeroSecond, tryNums]);
 }
 
 console.log(solveExpression('123*45?=5?088'));
@@ -113,6 +171,9 @@ console.log(solveExpression('123*45?=5?088'));
 
 // function testFunc() {
 // 	console.log('hi');
+//     return;
 // }
 
 // console.log(testFunc() == undefined);
+
+// console.log('1' == 1);
