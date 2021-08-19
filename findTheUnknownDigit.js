@@ -1,179 +1,179 @@
-// To give credit where credit is due: This problem was taken from the ACMICPC-Northwest Regional Programming Contest. Thank you problem writers.
-
-// You are helping an archaeologist decipher some runes. He knows that this ancient society used a Base 10 system, and that they never start a number with a leading zero. He's figured out most of the digits as well as a few operators, but he needs your help to figure out the rest.
-
-// The professor will give you a simple math expression, of the form
-
-// [number][op][number]=[number]
-
-// He has converted all of the runes he knows into digits. The only operators he knows are addition (+),subtraction(-), and multiplication (*), so those are the only ones that will appear. Each number will be in the range from -1000000 to 1000000, and will consist of only the digits 0-9, possibly a leading -, and maybe a few ?s. If there are ?s in an expression, they represent a digit rune that the professor doesn't know (never an operator, and never a leading -). All of the ?s in an expression will represent the same digit (0-9), and it won't be one of the other given digits in the expression. No number will begin with a 0 unless the number itself is 0, therefore 00 would not be a valid number.
-
-// Given an expression, figure out the value of the rune represented by the question mark. If more than one digit works, give the lowest one. If no digit works, well, that's bad news for the professor - it means that he's got some of his runes wrong. output -1 in that case.
-
-// Complete the method to solve the expression to find the value of the unknown rune. The method takes a string as a paramater repressenting the expression and will return an int value representing the unknown rune or -1 if no such rune exists.
-
 function solveExpression(exp) {
-	// let expression = exp.slice(0, exp.indexOf('='));
-	// let answer = exp.slice(exp.indexOf('=') + 1);
-	// console.log(expression, answer);
+	console.log('currentExp', exp);
+	// Использованные номера не могут быть под знаком вопроса +
 
-	const singleQM = /([^?])(\?)([^?])/g; // str.replace(/(.*name="\w+)(\d+)(\w+".*)/, "$1!NEW_ID!$3")
-	// const singleQMAfterNum = /(\d)(\?)(\B|\b|$)/g;
-	const singleQMAfterNum = /(\d)(\?)(\B|\b|$)/g;
-	const multipleQM = /\?/g;
 	let usedNums = [];
-	let changedExpression;
-
-	// let setUsedNums = new Set([...exp.matchAll(/\d{1}/g)]);
-	// for (let set of setUsedNums) {
-	//     if (usedNums.includes(set[0]) == false) usedNums.push(set[0]);
-	// }
-
 	for (let character of exp) {
-		for (let i = 1; i < 10; i += 1) {
+		for (let i = 0; i < 10; i += 1) {
 			if (character == i) usedNums.push(Number(character));
 		}
 	}
-
-	console.log(usedNums);
 	let numsToUse = [];
 	for (let i = 1; i < 10; i += 1) {
 		if (usedNums.includes(i) == false) numsToUse.push(i);
 	}
-	console.log('numsToUse', numsToUse);
 
-	// changedExpression = exp.replace(singleQM, '$10$3');
-	// changedExpression = changedExpression.replace(/=/g, '==');
-	// console.log(changedExpression);
-	// if (eval(changedExpression) == true) return 0;
+	//----------------------------------------------------------------
+	// Определить можно ли использовать нули
 
-	// changedExpression = exp.replace(singleQMAfterNum, '$10$3');
-	// changedExpression = changedExpression.replace(/=/g, '==');
-	// try {
-	// 	eval(changedExpression);
-	// } catch (error) {
-	// 	// if (error instanceof SyntaxError) {
-	// 	// попробовать без ифа
-	// 	// попробовать с ифом
-	// 	for (let digit = 1; digit < 10; digit += 1) {
-	// 		changedExpression = exp.replace(multipleQM, digit);
-	// 		changedExpression = changedExpression.replace(/=/g, '==');
-	// 		if (eval(changedExpression) == true) {
-	// 			console.log(changedExpression);
-	// 			return digit;
-	// 		}
-	// 	}
-	// 	// }
-	// }
-	// if (eval(changedExpression) == true) return 0;
+	let zeroesNotAllowed = false;
 
-	function tryZeroFirst() {
-		changedExpression = exp.replace(singleQMAfterNum, '$10$3');
-		changedExpression = changedExpression.replace(/=/g, '==');
-		console.log(changedExpression);
-		try {
-			eval(changedExpression);
-		} catch (error) {
-			console.log(error);
-			return;
+	for (let i = 0; i < exp.length; i += 1) {
+		//                    2+ вопроса       |               является ли началом числа
+		if (
+			(exp[i] == '?' &&
+				exp[i + 1] == '?' &&
+				(exp[i - 1] == undefined ||
+					exp[i - 1] == '-' ||
+					exp[i - 1] == '+' ||
+					exp[i - 1] == '*' ||
+					exp[i - 1] == '=')) ||
+			(exp[i] == '?' &&
+				Number.isInteger(Number(exp[i + 1])) &&
+				(exp[i - 1] == undefined ||
+					exp[i - 1] == '-' ||
+					exp[i - 1] == '+' ||
+					exp[i - 1] == '*' ||
+					exp[i - 1] == '='))
+		) {
+			zeroesNotAllowed = true;
 		}
-		if (eval(changedExpression) == true) return 0;
 	}
 
-	function tryZeroSecond() {
-		changedExpression = exp.replace(multipleQM, '0');
-		changedExpression = changedExpression.replace(/=/g, '==');
-		console.log(changedExpression);
-		try {
-			eval(changedExpression);
-		} catch (error) {
-			console.log(error);
-			return;
-		}
-		if (eval(changedExpression) == true) return 0;
-	}
+	//----------------------------------------------------------------
+	// Подстановка возможных цифр
 
-	function tryNums() {
-		for (let digit of numsToUse) {
-			changedExpression = exp.replace(multipleQM, digit);
-			changedExpression = changedExpression.replace(/=/g, '==');
-			try {
-				eval(changedExpression);
-			} catch (error) {
-				console.log(error);
-				return -1;
+	if (zeroesNotAllowed == false && usedNums.includes(0) == false)
+		numsToUse.unshift(0);
+	console.log('numsToUse:', numsToUse);
+
+	let changedExpression;
+
+	for (let digit of numsToUse) {
+		changedExpression = exp.replace(/\?/g, digit);
+		changedExpression = changedExpression.replace(/=/g, '==');
+
+		let numbers = [];
+		let currentNumber = '';
+		let pushingMode = false;
+
+		for (let i = 0; i < changedExpression.length; i += 1) {
+			// Если встречается число или вопросительный знак, то это начало числа
+			if (
+				Number.isInteger(Number.parseInt(changedExpression[i])) == true ||
+				changedExpression[i] == '?'
+			) {
+				pushingMode = true;
+			} else pushingMode = false;
+
+			// При доходе до конца отключить пушМод
+			if (i == changedExpression.length - 1) {
+				currentNumber += changedExpression[changedExpression.length - 1];
+				numbers.push(currentNumber);
 			}
-			if (eval(changedExpression) == true) {
-				console.log(changedExpression);
-				return digit;
+
+			if (pushingMode == true) currentNumber += changedExpression[i];
+			if (pushingMode == false) {
+				numbers.push(currentNumber);
+				currentNumber = '';
 			}
 		}
-	}
 
-	// try {
-	// 	eval(exp);
-	// } catch (error) {
-	// 	if (error instanceof SyntaxError) {
-	// 		b = -1;
-	// 	}
-	// }
+		numbers = numbers.filter((number) => number.length > 0);
 
-	// if (tryZeroFirst() == undefined && tryZeroSecond() == undefined && tryNums() == undefined) return -1;
+		let firstNumber = numbers[0];
+		let secondNumber = numbers[1];
+		let thirdNumber = numbers[2];
 
-	// if (tryZeroFirst() == undefined && tryZeroSecond() == undefined) {
-	// 	return tryNums();
-	// } else return tryZero();
+		//----------------------------------------------------------------
+		// Определить знаки
 
-	// if (tryZeroFirst() == undefined) {
+		for (let i = 0; i < changedExpression.length; i += 1) {
+			// Обнаружение минуса перед первым числом
+			if (
+				changedExpression[i] == '-' &&
+				changedExpression[i + 1] ==
+					changedExpression[changedExpression.indexOf(firstNumber)]
+			)
+				firstNumber = '-' + firstNumber;
+			// Обнаружение минуса перед вторым числом
+			if (
+				changedExpression[i] == '-' &&
+				changedExpression[i + 1] ==
+					changedExpression[changedExpression.indexOf(secondNumber)] &&
+				(changedExpression[i - 1] == '-' ||
+					changedExpression[i - 1] == '*' ||
+					changedExpression[i - 1] == '+')
+			)
+				secondNumber = '-' + secondNumber;
+			// Обнаружение минуса перед третьим числом
+			if (
+				changedExpression[i] == '-' &&
+				changedExpression[i + 1] ==
+					changedExpression[changedExpression.indexOf(thirdNumber)] &&
+				changedExpression[i - 1] == '='
+			)
+				thirdNumber = '-' + thirdNumber;
+		}
 
-	// }
+		//----------------------------------------------------------------
+		// При необходимости обрезка лишних минусов (могут образоваться при переборе множества вариантов)
 
-	function tryFunctions(funcs) {
-		for (let func of funcs) {
-			if (func() != undefined) return func();
+		if (firstNumber.indexOf('-') != -1)
+			firstNumber = firstNumber.slice(firstNumber.lastIndexOf('-'));
+		if (secondNumber.indexOf('-') != -1)
+			secondNumber = secondNumber.slice(secondNumber.lastIndexOf('-'));
+		if (thirdNumber.indexOf('-') != -1)
+			thirdNumber = thirdNumber.slice(thirdNumber.lastIndexOf('-'));
+
+		//----------------------------------------------------------------
+		// Обнаружение оператора
+
+		let operatorZone = changedExpression.slice(
+			firstNumber.length,
+			firstNumber.length + 1
+		);
+
+		firstNumber = Number(firstNumber);
+		secondNumber = Number(secondNumber);
+		thirdNumber = Number(thirdNumber);
+
+		if (operatorZone == '-') {
+			console.log(
+				firstNumber,
+				'-',
+				secondNumber,
+				'=',
+				thirdNumber,
+				firstNumber - secondNumber == thirdNumber
+			);
+			if (firstNumber - secondNumber == thirdNumber) return digit;
+		}
+		if (operatorZone == '+') {
+			console.log(
+				firstNumber,
+				'+',
+				secondNumber,
+				'=',
+				thirdNumber,
+				firstNumber + secondNumber == thirdNumber
+			);
+			if (firstNumber + secondNumber == thirdNumber) return digit;
+		}
+		if (operatorZone == '*') {
+			console.log(
+				firstNumber,
+				'*',
+				secondNumber,
+				'=',
+				thirdNumber,
+				firstNumber * secondNumber == thirdNumber
+			);
+			if (firstNumber * secondNumber == thirdNumber) return digit;
 		}
 	}
-
-	return tryFunctions([tryZeroFirst, tryZeroSecond, tryNums]);
+	// Если программа доходит до конца без результата возвращать -1
+	return -1;
 }
 
-console.log(solveExpression('123*45?=5?088'));
-
-// describe('Fixed tests', function() {
-//     it('Example tests', function() {
-//       var data = [
-//         ['1+1=?', 2],
-//         ['123*45?=5?088', 6],
-//         ['-5?*-1=5?', 0],
-//         ['19--45=5?', -1],
-//         ['??*??=302?', 5],
-//         ['?*11=??', 2],
-//         ['??*1=??', 2],
-//         ['??+??=??', -1]];
-//       for(let [exp, expected] of data) Test.assertEquals(solveExpression(exp), expected);
-//     });
-//   });
-
-// let a = eval('4+4');
-// let b;
-
-// try {
-//     eval('19--45');
-// } catch (error) {
-//     if (error instanceof SyntaxError) {
-//         b = -1;
-//     }
-// }
-
-// console.log(a, b);
-
-// console.log(eval('55*55==3025'));
-
-// function testFunc() {
-// 	console.log('hi');
-//     return;
-// }
-
-// console.log(testFunc() == undefined);
-
-// console.log('1' == 1);
+console.log(solveExpression('-?56373--9216=-?47157'));
