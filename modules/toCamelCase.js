@@ -7,5 +7,8 @@ function toCamelCase(string) {
 	return words.join('');
 }
 
+console.log(toCamelCase('Vigenère Cipher Helper'))
 
-export { toCamelCase };
+module.exports = {
+	toCamelCase
+}
