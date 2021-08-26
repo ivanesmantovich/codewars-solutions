@@ -1,8 +1,7 @@
-function nouveau(Constructor, customName) {
-	// let resultObject = Constructor(customName);
-    // resultObject.__proto__ = Constructor;
-	let resultObject = Object.create(Constructor);
-	return resultObject;
+function nouveau(Constructor, ...props) {
+	let instance = Object.create(Constructor.prototype);
+	let resultObject = Constructor.apply(instance, props)
+	return resultObject === Object(resultObject) ? resultObject : instance;
 }
 
 // describe('Tests', () => {
